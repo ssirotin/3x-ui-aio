@@ -3,10 +3,16 @@ services:
     image: docker.angie.software/angie:latest
     container_name: angie
     network_mode: host
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384 
     volumes:
       - ./angie.conf:/etc/angie/angie.conf
       - ./options-ssl-angie.conf:/etc/angie/options-ssl-angie.conf
-      - 3x-ui-aio-volume:/var/lib/angie/acme/
+      - ./acme/:/var/lib/angie/acme/
+      - ./.htpasswd:/etc/angie/.htpasswd
+      - /opt/angie/logs/:/var/log/angie/
     restart: unless-stopped
 
   3x-ui:
@@ -14,7 +20,9 @@ services:
     container_name: 3x-ui
     network_mode: host
     volumes:
-      - 3x-ui-aio-volume:/etc/x-ui/
+      - ./db/:/etc/x-ui/
+      - /opt/x-ui/logs/:/var/log/x-ui/access.log
+      - /opt/x-ui/logs/:/var/log/x-ui/error.log
     environment:
       XRAY_VMESS_AEAD_FORCED: "false"
       X_UI_ENABLE_FAIL2BAN: "false"
@@ -26,7 +34,3 @@ services:
     container_name: authorization-stub
     network_mode: host
     restart: unless-stopped
-
-volumes:
-  3x-ui-aio-volume:
-    name: 3x-ui-aio-volume
